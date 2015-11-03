@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">VolcBook</string>
+    <string-array name="spinner_level">
+        <item>lvl 0</item>
+        <item>lvl 1</item>
+        <item>lvl 2</item>
+        <item>lvl 3</item>
+    </string-array>
 </resources>
