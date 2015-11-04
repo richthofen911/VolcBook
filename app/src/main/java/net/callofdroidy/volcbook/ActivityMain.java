@@ -12,13 +12,20 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import java.util.Random;
+
 public class ActivityMain extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private DatabaseHelper myDatabaseHelper;
     private Spinner spinner_level;
     private SQLiteDatabase dbIELTS;
+    private int candidateAmount = 0; // total amount of words that meet the level requirement
+    private boolean isFirstTimeTest = true;
+    private boolean isLevelSelected = false;
 
+    private Cursor cursorCurrentWordPool;
     private int testLevel = 0;
+    private int lastTestLevel = 0;
     private EditText et_word;
     private EditText et_translation;
     private EditText et_example;
@@ -58,17 +65,45 @@ public class ActivityMain extends AppCompatActivity implements AdapterView.OnIte
         });
     }
 
-    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-        // An item was selected. You can retrieve the selected item using
-        // parent.getItemAtPosition(pos)
-        testLevel = (int) parent.getItemAtPosition(pos);
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) { //override method for OnItemSelect interface
+        if(!isLevelSelected){
+            spinner_level.setSelection(3);
+            isLevelSelected = true;
+        }
+        testLevel =  Integer.valueOf((String) parent.getItemAtPosition(pos));
+
+        Log.e("testLevel, lastLevel", testLevel + " " + lastTestLevel);
     }
 
-    public void onNothingSelected(AdapterView<?> parent) {
+    public void onNothingSelected(AdapterView<?> parent) { //override method for OnItemSelect interface
     }
 
-    private String[] popAWord(int level){
-        Cursor cursor = dbIELTS.query("main", projection, null, null, null, null, null);
-        return null;
+    private void popAWord(int level){
+        if(testLevel != lastTestLevel || isFirstTimeTest){ // if testLevel has changed, do another query. otherwise just get a word from cache
+            cursorCurrentWordPool = dbIELTS.query("main", projection, "Level >= " + level, null, null, null, null);
+            lastTestLevel = level;
+            if(cursorCurrentWordPool != null){
+                candidateAmount = cursorCurrentWordPool.getCount();
+                cursorCurrentWordPool.moveToPosition(new Random().nextInt(candidateAmount));
+                et_word.setText(cursorCurrentWordPool.getString(1));
+                et_translation.setText(cursorCurrentWordPool.getString(2));
+                et_example.setText(cursorCurrentWordPool.getString(3));
+                et_note.setText(cursorCurrentWordPool.getString(4));
+                et_level.setText(cursorCurrentWordPool.getString(5));
+                et_synonyms.setText(cursorCurrentWordPool.getString(6));
+                et_antonyms.setText(cursorCurrentWordPool.getString(7));
+                isFirstTimeTest = false;
+            }
+        }else{
+            cursorCurrentWordPool.moveToPosition(new Random().nextInt(candidateAmount));
+            et_word.setText(cursorCurrentWordPool.getString(1));
+            et_translation.setText(cursorCurrentWordPool.getString(2));
+            et_example.setText(cursorCurrentWordPool.getString(3));
+            et_note.setText(cursorCurrentWordPool.getString(4));
+            et_level.setText(cursorCurrentWordPool.getString(5));
+            et_synonyms.setText(cursorCurrentWordPool.getString(6));
+            et_antonyms.setText(cursorCurrentWordPool.getString(7));
+        }
+        Log.e("last level", lastTestLevel + "");
     }
 }
